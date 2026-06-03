@@ -13,10 +13,15 @@ const navLinks = [
 
 type NavbarProps = {
   cartCount: number
+  isCartReceiving?: boolean
   onCartClick: () => void
 }
 
-export function Navbar({ cartCount, onCartClick }: NavbarProps) {
+export function Navbar({
+  cartCount,
+  isCartReceiving = false,
+  onCartClick,
+}: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   function scrollToNewDrops() {
@@ -57,7 +62,7 @@ export function Navbar({ cartCount, onCartClick }: NavbarProps) {
         </div>
         <button
           type="button"
-          className="navbar__cart"
+          className={`navbar__cart ${isCartReceiving ? 'is-receiving' : ''}`}
           aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? '' : 's'}`}
           onClick={onCartClick}
         >

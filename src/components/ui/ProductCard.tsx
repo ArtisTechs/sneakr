@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
+import type { MouseEvent } from 'react'
 import type { Product } from '../../data/products'
 import { Button } from './Button'
 
 type ProductCardProps = {
   product: Product
-  onAddToCart: (product: Product) => void
+  onAddToCart: (product: Product, event: MouseEvent<HTMLButtonElement>) => void
   onViewDetails: (product: Product) => void
 }
 
@@ -48,7 +49,7 @@ export function ProductCard({
           ))}
         </div>
         <div className="product-card__actions">
-          <Button type="button" onClick={() => onAddToCart(product)}>
+          <Button type="button" onClick={(event) => onAddToCart(product, event)}>
             Add to Cart
           </Button>
           <Button type="button" variant="ghost" onClick={() => onViewDetails(product)}>

@@ -1,11 +1,11 @@
-import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, type MouseEvent } from 'react'
 import type { Product } from '../../data/products'
 import { Button } from './Button'
 
 type ProductDetailsModalProps = {
   product: Product | null
-  onAddToCart: (product: Product) => void
+  onAddToCart: (product: Product, event: MouseEvent<HTMLButtonElement>) => void
   onClose: () => void
 }
 
@@ -99,7 +99,7 @@ export function ProductDetailsModal({
                 ))}
               </div>
               <div className="product-modal__actions">
-                <Button type="button" onClick={() => onAddToCart(product)}>
+                <Button type="button" onClick={(event) => onAddToCart(product, event)}>
                   Add to Cart
                 </Button>
                 <Button type="button" variant="ghost" onClick={onClose}>

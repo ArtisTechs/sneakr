@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
+import type { MouseEvent } from 'react'
 import { products, type Product } from '../../data/products'
 import { ProductCard } from '../ui/ProductCard'
 import { SectionHeader } from '../ui/SectionHeader'
 
 type FeaturedProductsProps = {
-  onAddToCart: (product: Product) => void
+  onAddToCart: (product: Product, event: MouseEvent<HTMLButtonElement>) => void
   onViewDetails: (product: Product) => void
 }
 

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { BackgroundFX } from '../components/layout/BackgroundFX'
 import { Footer } from '../components/layout/Footer'
 import { Navbar } from '../components/layout/Navbar'
@@ -16,6 +17,13 @@ import { products, type Product } from '../data/products'
 type CartItem = {
   productId: number
   quantity: number
+}
+
+type CartFlyAnimation = {
+  id: number
+  image: string
+  from: DOMRect
+  to: DOMRect
 }
 
 const cartStorageKey = 'sneakr-cart'
@@ -47,6 +55,8 @@ export function Home() {
   const [cartItems, setCartItems] = useState<CartItem[]>(getCachedCart)
   const [notice, setNotice] = useState('Cart ready')
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isCartReceiving, setIsCartReceiving] = useState(false)
+  const [cartFlyAnimation, setCartFlyAnimation] = useState<CartFlyAnimation | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
   useEffect(() => {
@@ -77,7 +87,31 @@ export function Home() {
     [cartItems],
   )
 
-  function handleAddToCart(product: Product) {
+  function startCartFlyAnimation(product: Product, event: MouseEvent<HTMLButtonElement>) {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const cartTarget = document.querySelector<HTMLButtonElement>('.navbar__cart')
+
+    if (prefersReducedMotion || !cartTarget) {
+      return
+    }
+
+    const sourceImage =
+      event.currentTarget
+        .closest('.product-card, .product-modal__panel')
+        ?.querySelector<HTMLImageElement>('img') ?? event.currentTarget
+    const sourceRect = sourceImage.getBoundingClientRect()
+    const cartRect = cartTarget.getBoundingClientRect()
+
+    setCartFlyAnimation({
+      id: Date.now(),
+      image: product.image,
+      from: sourceRect,
+      to: cartRect,
+    })
+  }
+
+  function handleAddToCart(product: Product, event: MouseEvent<HTMLButtonElement>) {
+    startCartFlyAnimation(product, event)
     setCartItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.productId === product.id)
 
@@ -92,6 +126,8 @@ export function Home() {
       return [...currentItems, { productId: product.id, quantity: 1 }]
     })
     setNotice(`${product.name} added to cart`)
+    setIsCartReceiving(true)
+    window.setTimeout(() => setIsCartReceiving(false), 620)
   }
 
   function handleViewDetails(product: Product) {
@@ -133,7 +169,11 @@ export function Home() {
   return (
     <>
       <BackgroundFX />
-      <Navbar cartCount={cartCount} onCartClick={handleCartClick} />
+      <Navbar
+        cartCount={cartCount}
+        isCartReceiving={isCartReceiving}
+        onCartClick={handleCartClick}
+      />
       <main>
         <HeroSection
           onExploreDrops={() => scrollToSection('new-drops')}
@@ -154,6 +194,37 @@ export function Home() {
       <div className="site-notice" role="status" aria-live="polite">
         {notice}
       </div>
+      <AnimatePresence>
+        {cartFlyAnimation ? (
+          <motion.img
+            key={cartFlyAnimation.id}
+            className="cart-fly-item"
+            src={cartFlyAnimation.image}
+            alt=""
+            aria-hidden="true"
+            initial={{
+              left: cartFlyAnimation.from.left,
+              top: cartFlyAnimation.from.top,
+              width: cartFlyAnimation.from.width,
+              height: cartFlyAnimation.from.height,
+              opacity: 0.92,
+              scale: 1,
+              rotate: 0,
+            }}
+            animate={{
+              left: cartFlyAnimation.to.left + cartFlyAnimation.to.width / 2 - 18,
+              top: cartFlyAnimation.to.top + cartFlyAnimation.to.height / 2 - 18,
+              width: 36,
+              height: 36,
+              opacity: 0,
+              scale: 0.38,
+              rotate: -8,
+            }}
+            transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
+            onAnimationComplete={() => setCartFlyAnimation(null)}
+          />
+        ) : null}
+      </AnimatePresence>
       <ProductDetailsModal
         product={selectedProduct}
         onAddToCart={handleAddToCart}
